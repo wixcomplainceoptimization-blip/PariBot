@@ -351,4 +351,191 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("📊 No history yet. Start making predictions!")
             return
         
-        response = "📊
+        response = "📊 *Your Recent Activity*\n\n"
+        for i, item in enumerate(history, 1):
+            response += f"{i}. {item.home_team} vs {item.away_team}\n"
+            response += f"   Prediction: {item.prediction} (Confidence: {item.confidence:.1f}%)\n"
+            response += f"   Odds: {item.home_odds:.2f} | {item.draw_odds:.2f} | {item.away_odds:.2f}\n\n"
+        
+        await update.message.reply_text(response, parse_mode='Markdown')
+        
+    except Exception as e:
+        logger.error(f"Error in history_command: {e}")
+        await update.message.reply_text("❌ Error fetching history.")
+
+async def alerts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Set up price alerts"""
+    alert_message = """
+🔔 *Price Alerts*
+
+Set alerts for odds changes!
+
+*How it works:*
+1. Choose a match
+2. Set target odds
+3. Get notified when odds reach your target
+
+💡 *Coming soon:* Full alert system with notifications!
+
+*Currently supported:*
+• Manual check with `/predict`
+• High-confidence predictions highlighted
+
+Stay tuned for real-time alerts! 🚀
+"""
+    await update.message.reply_text(alert_message, parse_mode='Markdown')
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show prediction statistics"""
+    stats_message = """
+📊 *PariBot Statistics*
+
+🎯 *Available Stats:*
+• Total predictions made today
+• Highest confidence predictions
+• Most profitable leagues
+• Value bets identified
+
+*Coming soon:* Historical accuracy tracking!
+
+📈 *Current Performance:*
+• Active matches tracked: Looking for matches...
+• Supported leagues: 12+
+• Sports available: 4
+
+Use `/predict` to start analyzing! 🚀
+"""
+    await update.message.reply_text(stats_message, parse_mode='Markdown')
+
+# ==================== CALLBACK HANDLERS ====================
+
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle button callbacks"""
+    query = update.callback_query
+    await query.answer()
+    
+    data = query.data
+    
+    if data == "predict":
+        await predict_command(update, context)
+    
+    elif data == "sports":
+        await sports_command(update, context)
+    
+    elif data == "value_bets":
+        await query.edit_message_text(
+            "💰 *Value Bets*\n\n"
+            "Finding best value bets...\n"
+            "Check `/predict` for top picks!",
+            parse_mode='Markdown'
+        )
+    
+    elif data == "history":
+        await history_command(update, context)
+    
+    elif data.startswith("set_league_"):
+        league = data.replace("set_league_", "")
+        user = update.effective_user
+        
+        # Map short codes to full names
+        league_map = {
+            'premier': 'england_premier_league',
+            'laliga': 'spain_la_liga',
+            'seriea': 'italy_serie_a',
+            'nba': 'usa_nba',
+            'atp': 'atp',
+            'mlb': 'mlb'
+        }
+        
+        league_key = league_map.get(league, league)
+        
+        db.update_user_preferences(user.id, league=league_key)
+        
+        league_name = Config.LEAGUE_NAMES.get(league_key, league_key)
+        await query.edit_message_text(
+            f"✅ Favorite league set to {league_name}!\n"
+            f"Use `/predict` to get predictions!",
+            parse_mode='Markdown'
+        )
+    
+    elif data == "clear_preferences":
+        user = update.effective_user
+        db.update_user_preferences(user.id, sport=None, league=None)
+        await query.edit_message_text(
+            "✅ Preferences cleared!\n"
+            "Use `/myleagues` to set new favorites.",
+            parse_mode='Markdown'
+        )
+
+# ==================== MESSAGE HANDLER ====================
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle non-command messages"""
+    text = update.message.text
+    
+    # Check for sport mention
+    sport = Utils.extract_sport(text)
+    if sport:
+        context.args = [sport]
+        await predict_command(update, context)
+        return
+    
+    # Default response
+    response = """
+🤖 *PariBot*
+
+Try these commands:
+• `/predict` - Get predictions
+• `/predict football` - Football predictions
+• `/odds epl` - Premier League odds
+• `/myleagues` - Set favorites
+• `/help` - All commands
+"""
+    await update.message.reply_text(response, parse_mode='Markdown')
+
+# ==================== MAIN FUNCTION ====================
+
+def main():
+    """Start the bot"""
+    try:
+        # Start healthcheck server
+        health_thread = threading.Thread(target=run_healthcheck_server, daemon=True)
+        health_thread.start()
+        
+        logger.info("🚀 Starting PariBot...")
+        
+        # Create application
+        application = Application.builder().token(Config.BOT_TOKEN).build()
+        
+        # Add error handler
+        application.add_error_handler(error_handler)
+        
+        # Add command handlers
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("about", about_command))
+        application.add_handler(CommandHandler("sports", sports_command))
+        application.add_handler(CommandHandler("predict", predict_command))
+        application.add_handler(CommandHandler("odds", odds_command))
+        application.add_handler(CommandHandler("myleagues", myleagues_command))
+        application.add_handler(CommandHandler("history", history_command))
+        application.add_handler(CommandHandler("alerts", alerts_command))
+        application.add_handler(CommandHandler("stats", stats_command))
+        
+        # Add callback handler
+        application.add_handler(CallbackQueryHandler(button_callback))
+        
+        # Add message handler
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        
+        # Start the bot
+        logger.info("✅ PariBot is running!")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        logger.error(traceback.format_exc())
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()
