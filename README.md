@@ -1,54 +1,38 @@
-# 🎯 PariBot - Advanced Betting Assistant
+# 🎲 PariBot - Telegram Betting WebApp
 
-PariBot is a powerful Telegram bot for sports betting predictions, offering multi-sport support, value bet detection, and personalized alerts.
+PariBot is a complete betting game inside Telegram using WebApp technology.
 
 ## ✨ Features
 
-- ⚽ **Multi-Sport**: Football, Basketball, Tennis, Baseball
-- 🔮 **AI Predictions**: Smart probability analysis
-- 💰 **Value Detection**: Find undervalued bets
-- 📊 **Spread & Totals**: Advanced betting markets
-- 🔔 **Price Alerts**: Get notified on odds changes
-- 📈 **History Tracking**: Monitor your predictions
-- ⚙️ **Personalization**: Set favorite leagues
+- 🎰 Spin-to-win game with 50/50 odds
+- 💰 Real-time balance tracking
+- 📊 Game history
+- 🎨 Beautiful Telegram-native UI
+- 🔐 Secure authentication via Telegram
 
 ## 🚀 Quick Start
 
-1. Clone the repository
+1. Clone this repository
 2. Install dependencies: `pip install -r requirements.txt`
-3. Create `.env` with your API keys
-4. Run: `python bot.py`
+3. Copy `.env.example` to `.env` and fill in your tokens
+4. Run: `python start.py`
 
-## 📋 Commands
+## 📱 Telegram Setup
 
-- `/start` - Welcome with inline menu
-- `/predict` - Get top predictions
-- `/predict <sport>` - Sport-specific predictions
-- `/odds <league>` - League odds
-- `/myleagues` - Set favorite leagues
-- `/history` - View prediction history
-- `/alerts` - Set price alerts
-- `/sports` - List all sports
-- `/help` - Help menu
+1. Message @BotFather
+2. Create a new bot: `/newbot`
+3. Get your token
+4. Set WebApp domain: `/setdomain` → your Railway URL
 
-## 🛠️ Tech Stack
+## 🛠️ Deployment
 
-- Python 3.11
-- python-telegram-bot 21.x
-- SQLAlchemy (Database)
-- The Odds API
-
-## 🌐 Deployment on Railway
+Deploy to Railway:
 
 1. Push to GitHub
 2. Connect to Railway
-3. Set environment variables
+3. Add environment variables
 4. Deploy!
-
-## ⚠️ Disclaimer
-
-For entertainment only. Bet responsibly!
 
 ## 📝 License
 
-MIT License
+MIT
