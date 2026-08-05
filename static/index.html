@@ -1,3 +1,8 @@
+# Create the folder
+mkdir static
+
+# Create the file
+cat > static/index.html << 'EOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,12 +11,7 @@
     <title>PariBot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--tg-theme-bg-color, #ffffff);
@@ -19,12 +19,7 @@
             padding: 16px;
             min-height: 100vh;
         }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
+        .container { max-width: 400px; margin: 0 auto; }
         .header {
             display: flex;
             justify-content: space-between;
@@ -33,18 +28,12 @@
             border-bottom: 2px solid var(--tg-theme-secondary-bg-color, #e0e0e0);
             margin-bottom: 20px;
         }
-        
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-        }
-        
+        .title { font-size: 22px; font-weight: bold; }
         .balance {
             font-size: 20px;
             font-weight: bold;
             color: var(--tg-theme-accent-color, #0088cc);
         }
-        
         .stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -55,27 +44,11 @@
             border-radius: 12px;
             text-align: center;
         }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            opacity: 0.7;
-        }
-        
-        .stat-value {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-        
+        .stat-item { display: flex; flex-direction: column; }
+        .stat-label { font-size: 10px; text-transform: uppercase; opacity: 0.7; }
+        .stat-value { font-size: 16px; font-weight: bold; margin-top: 4px; }
         .stat-value.win { color: #00c853; }
         .stat-value.lose { color: #ff1744; }
-        
         .game-area {
             text-align: center;
             padding: 20px 0;
@@ -83,44 +56,17 @@
             border-radius: 16px;
             margin-bottom: 20px;
         }
-        
-        .result-box {
-            font-size: 56px;
-            min-height: 80px;
-            margin: 10px 0;
-            transition: all 0.3s;
-        }
-        
-        .result-box.win {
-            animation: pulse 0.5s ease-in-out;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-        
-        .result-message {
-            font-size: 18px;
-            font-weight: bold;
-            min-height: 30px;
-            margin-bottom: 10px;
-        }
-        
+        .result-box { font-size: 56px; min-height: 80px; margin: 10px 0; }
+        .result-message { font-size: 18px; font-weight: bold; min-height: 30px; margin-bottom: 10px; }
         .result-message.win { color: #00c853; }
         .result-message.lose { color: #ff1744; }
-        
-        .bet-control {
-            margin: 10px 0;
-        }
-        
+        .bet-control { margin: 10px 0; }
         .bet-input-group {
             display: flex;
             align-items: center;
             gap: 10px;
             justify-content: center;
         }
-        
         .bet-input {
             width: 120px;
             padding: 12px;
@@ -131,12 +77,6 @@
             color: var(--tg-theme-text-color, #000000);
             text-align: center;
         }
-        
-        .bet-input:focus {
-            outline: none;
-            border-color: var(--tg-theme-button-color, #0088cc);
-        }
-        
         .btn {
             padding: 16px 40px;
             font-size: 18px;
@@ -145,38 +85,16 @@
             color: #ffffff;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
             margin-top: 10px;
-            touch-action: manipulation;
         }
-        
-        .btn-primary {
-            background: var(--tg-theme-button-color, #0088cc);
-        }
-        
-        .btn-primary:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
+        .btn-primary { background: var(--tg-theme-button-color, #0088cc); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .history {
             padding: 12px;
             background: var(--tg-theme-secondary-bg-color, #f5f5f5);
             border-radius: 12px;
         }
-        
-        .history-title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
+        .history-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; }
         .history-item {
             display: flex;
             justify-content: space-between;
@@ -184,38 +102,18 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
             font-size: 14px;
         }
-        
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
         .history-result.win { color: #00c853; font-weight: bold; }
         .history-result.lose { color: #ff1744; font-weight: bold; }
-        
-        .history-empty {
-            text-align: center;
-            color: #999;
-            padding: 20px 0;
-        }
-        
-        .error {
-            color: #ff1744;
-            padding: 10px;
-            text-align: center;
-            background: rgba(255,23,68,0.1);
-            border-radius: 8px;
-            margin: 10px 0;
-        }
+        .history-empty { text-align: center; color: #999; padding: 20px 0; }
     </style>
 </head>
 <body>
-    <div class="container" id="app">
+    <div class="container">
         <div class="header">
             <span class="title">🎲 PariBot</span>
             <span class="balance">💰 <span id="balance">0</span></span>
         </div>
-        
-        <div class="stats" id="stats">
+        <div class="stats">
             <div class="stat-item">
                 <span class="stat-label">Games</span>
                 <span class="stat-value" id="gamesPlayed">0</span>
@@ -229,11 +127,9 @@
                 <span class="stat-value lose" id="totalLost">0</span>
             </div>
         </div>
-        
         <div class="game-area">
             <div class="result-box" id="resultBox">🎯</div>
             <div class="result-message" id="resultMessage">Place your bet & spin!</div>
-            
             <div class="bet-control">
                 <div class="bet-input-group">
                     <button class="btn" style="padding: 12px 16px; font-size: 14px; background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);" onclick="adjustBet(-5)">-5</button>
@@ -241,27 +137,22 @@
                     <button class="btn" style="padding: 12px 16px; font-size: 14px; background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);" onclick="adjustBet(5)">+5</button>
                 </div>
             </div>
-            
             <button class="btn btn-primary" id="spinBtn" onclick="spin()">🎰 Spin</button>
         </div>
-        
-        <div class="history" id="historyContainer">
+        <div class="history">
             <div class="history-title">📊 Recent Games</div>
             <div id="historyList">
                 <div class="history-empty">No games played yet</div>
             </div>
         </div>
     </div>
-    
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         
-        let userData = null;
         let balance = 0;
         let isSpinning = false;
-        
         const API_URL = window.location.origin;
         
         async function initUser() {
@@ -269,24 +160,15 @@
                 const response = await fetch(`${API_URL}/api/user`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        initData: tg.initData
-                    })
+                    body: JSON.stringify({ initData: tg.initData })
                 });
-                
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'Auth failed');
-                }
-                
+                if (!response.ok) throw new Error('Auth failed');
                 const data = await response.json();
-                userData = data.user;
-                updateUI(userData);
+                updateUI(data.user);
                 loadHistory();
-                
             } catch (error) {
                 console.error('Init error:', error);
-                showError('Failed to connect to server');
+                document.getElementById('resultMessage').textContent = '❌ Connection failed';
             }
         }
         
@@ -307,57 +189,30 @@
         
         async function spin() {
             if (isSpinning) return;
-            
             const betInput = document.getElementById('betAmount');
             const bet = parseFloat(betInput.value);
-            
-            if (isNaN(bet) || bet < 1) {
-                setResult('❌', 'Invalid bet amount', '');
-                return;
-            }
-            
-            if (bet > balance) {
-                setResult('❌', 'Insufficient balance!', '');
-                return;
-            }
-            
+            if (isNaN(bet) || bet < 1) { setResult('❌', 'Invalid bet'); return; }
+            if (bet > balance) { setResult('❌', 'Insufficient balance!'); return; }
             isSpinning = true;
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
             btn.textContent = '🔄 Spinning...';
-            
             setResult('⏳', 'Spinning...', '');
-            
             try {
                 const response = await fetch(`${API_URL}/api/spin`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        initData: tg.initData,
-                        bet: bet
-                    })
+                    body: JSON.stringify({ initData: tg.initData, bet: bet })
                 });
-                
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'Spin failed');
-                }
-                
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Spin failed'); }
                 const data = await response.json();
-                
                 if (data.success) {
                     balance = data.new_balance;
                     updateUI(data);
-                    
-                    if (data.win) {
-                        setResult('🎉', `WIN +${data.win_amount.toFixed(1)}!`, 'win');
-                    } else {
-                        setResult('😢', `LOSE -${bet.toFixed(1)}`, 'lose');
-                    }
-                    
+                    if (data.win) { setResult('🎉', `WIN +${data.win_amount.toFixed(1)}!`, 'win'); }
+                    else { setResult('😢', `LOSE -${bet.toFixed(1)}`, 'lose'); }
                     loadHistory();
                 }
-                
             } catch (error) {
                 console.error('Spin error:', error);
                 setResult('❌', error.message || 'Spin failed', '');
@@ -369,21 +224,10 @@
         }
         
         function setResult(emoji, message, result) {
-            const box = document.getElementById('resultBox');
+            document.getElementById('resultBox').textContent = emoji;
             const msg = document.getElementById('resultMessage');
-            
-            box.textContent = emoji;
             msg.textContent = message;
             msg.className = 'result-message ' + (result || '');
-            box.className = 'result-box ' + (result || '');
-        }
-        
-        function showError(message) {
-            const container = document.getElementById('app');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = '❌ ' + message;
-            container.prepend(errorDiv);
         }
         
         async function loadHistory() {
@@ -391,20 +235,15 @@
                 const response = await fetch(`${API_URL}/api/history`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        initData: tg.initData
-                    })
+                    body: JSON.stringify({ initData: tg.initData })
                 });
-                
                 if (!response.ok) throw new Error('History failed');
                 const data = await response.json();
-                
                 const list = document.getElementById('historyList');
                 if (!data.history || data.history.length === 0) {
                     list.innerHTML = '<div class="history-empty">No games played yet</div>';
                     return;
                 }
-                
                 list.innerHTML = data.history.map(h => `
                     <div class="history-item">
                         <span>Bet $${h.bet.toFixed(1)}</span>
@@ -413,29 +252,17 @@
                         </span>
                     </div>
                 `).join('');
-                
             } catch (error) {
                 console.error('History error:', error);
             }
         }
         
-        // Keyboard shortcuts
         document.getElementById('betAmount').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') spin();
         });
         
-        // Initialize
         initUser();
-        
-        // Handle theme changes
-        tg.onEvent('themeChanged', () => {
-            document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
-        });
-        
-        // Handle closing
-        tg.onEvent('viewportChanged', () => {
-            tg.expand();
-        });
     </script>
 </body>
 </html>
+EOF
