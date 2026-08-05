@@ -9,7 +9,7 @@ import json
 import random
 import os
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SQLALCHEMY_DATABASE_URI'] = Config.DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = Config.SECRET_KEY
@@ -20,9 +20,9 @@ db.init_app(app)
 # Create tables
 with app.app_context():
     db.create_all()
+    print("✅ Database created!")
 
 def verify_telegram_data(init_data):
-    """Verify Telegram WebApp initData"""
     try:
         data = dict(x.split('=') for x in init_data.split('&') if x)
         hash_value = data.pop('hash', None)
@@ -30,17 +30,14 @@ def verify_telegram_data(init_data):
         if not hash_value:
             return False
         
-        # Sort and create check string
         check_string = '\n'.join(f"{k}={v}" for k, v in sorted(data.items()))
         
-        # Generate secret key
         secret_key = hmac.new(
             b"WebAppData",
             Config.BOT_TOKEN.encode(),
             hashlib.sha256
         ).digest()
         
-        # Calculate hash
         calculated_hash = hmac.new(
             secret_key,
             check_string.encode(),
@@ -53,7 +50,6 @@ def verify_telegram_data(init_data):
         return False
 
 def get_user_from_init_data(init_data):
-    """Extract user data from initData"""
     try:
         data = dict(x.split('=') for x in init_data.split('&') if x)
         user_data = json.loads(data.get('user', '{}'))
@@ -65,10 +61,25 @@ def get_user_from_init_data(init_data):
     except:
         return None
 
+# ==================== ROUTES ====================
+
 @app.route('/')
 def serve_index():
-    """Serve the WebApp frontend"""
-    return send_from_directory('static', 'index.html')
+    """Serve the main WebApp page"""
+    try:
+        return send_from_directory('static', 'index.html')
+    except Exception as e:
+        print(f"Error serving index: {e}")
+        return "Index file not found", 404
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Serve static files"""
+    try:
+        return send_from_directory('static', path)
+    except Exception as e:
+        print(f"Error serving static file: {e}")
+        return "File not found", 404
 
 @app.route('/health')
 def health():
@@ -91,7 +102,6 @@ def get_or_create_user():
         username = user_info['username']
         first_name = user_info['first_name']
         
-        # Get or create user
         user = User.query.filter_by(telegram_id=telegram_id).first()
         if not user:
             user = User(
@@ -102,6 +112,7 @@ def get_or_create_user():
             )
             db.session.add(user)
             db.session.commit()
+            print(f"✅ New user created: {username}")
         
         return jsonify({
             'success': True,
@@ -135,13 +146,11 @@ def spin():
         if bet_amount > user.balance:
             return jsonify({'error': 'Insufficient balance'}), 400
         
-        # Spin logic - 50/50 chance
         win = random.random() > 0.5
         win_amount = bet_amount * 2 if win else 0
         
-        # Update balance
         if win:
-            user.balance += bet_amount  # Net profit = bet amount (since we bet, win = bet*2)
+            user.balance += bet_amount
             user.total_won += bet_amount
         else:
             user.balance -= bet_amount
@@ -149,13 +158,11 @@ def spin():
         
         user.games_played += 1
         
-        # Save history
         history = GameHistory(
             telegram_id=telegram_id,
             bet_amount=bet_amount,
             win_amount=win_amount,
-            result='win' if win else 'lose',
-            game_type='spin'
+            result='win' if win else 'lose'
         )
         db.session.add(history)
         db.session.commit()
@@ -201,4 +208,5 @@ def get_history():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=Config.PORT, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
