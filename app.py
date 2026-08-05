@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
@@ -9,7 +9,11 @@ import json
 import random
 import os
 
-app = Flask(__name__, static_folder='static', static_url_path='/static')
+# Create Flask app with correct static folder configuration
+app = Flask(__name__, 
+            static_folder='static',
+            static_url_path='')
+
 app.config['SQLALCHEMY_DATABASE_URI'] = Config.DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = Config.SECRET_KEY
@@ -61,30 +65,35 @@ def get_user_from_init_data(init_data):
     except:
         return None
 
-# ==================== ROUTES ====================
-
+# ==================== CRITICAL FIX: Serve index.html correctly ====================
 @app.route('/')
 def serve_index():
     """Serve the main WebApp page"""
     try:
-        return send_from_directory('static', 'index.html')
+        # Check if file exists
+        if os.path.exists('static/index.html'):
+            return send_file('static/index.html')
+        else:
+            return "index.html not found in static folder", 404
     except Exception as e:
         print(f"Error serving index: {e}")
-        return "Index file not found", 404
+        return f"Error: {str(e)}", 404
 
-@app.route('/static/<path:path>')
+# Serve all other static files
+@app.route('/<path:path>')
 def serve_static(path):
-    """Serve static files"""
+    """Serve any file from static folder"""
     try:
         return send_from_directory('static', path)
     except Exception as e:
-        print(f"Error serving static file: {e}")
-        return "File not found", 404
+        print(f"Error serving {path}: {e}")
+        return f"File not found: {path}", 404
 
 @app.route('/health')
 def health():
     return 'OK', 200
 
+# ==================== API ROUTES ====================
 @app.route('/api/user', methods=['POST'])
 def get_or_create_user():
     try:
@@ -208,5 +217,5 @@ def get_history():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
